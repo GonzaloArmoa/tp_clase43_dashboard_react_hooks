@@ -6,9 +6,11 @@ import { Loading } from "../components/Loading";
 import { Paginator } from "../components/Paginator";
 import { FormSearchMovies } from "../components/FormSearchMovies";
 import { FormMovie } from "../components/FormMovie";
+import { Toast } from "../utils/toast";
 
 export const MoviesListPage = () => {
   const [movies, setMovies] = useState([]);
+  const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({});
 
@@ -29,6 +31,78 @@ export const MoviesListPage = () => {
     apiCall();
   }, []);
 
+  const handleAddMovie = async (data) => {
+    try {
+
+      let response =  await fetch(
+        `${import.meta.env.VITE_APP_API_URLBASE}/movies`, {
+           method : 'POST',
+           //body : data,  <-- EN EL CASO QUE QUERAMOS SUBIR IMÁGENES
+           body : JSON.stringify(data),
+           headers : {
+            'Content-Type' : 'application/json'
+           }
+        }
+      )
+      let result = await response.json()
+
+     if(result.ok){
+      Toast.fire({
+        icon: "success",
+        title: result.msg
+      });   
+      setMovies([
+        ...movies,
+        result.data
+      ]) 
+     }
+      
+    } catch (error) {
+      console.log(error);
+    }
+
+
+    };
+
+    const handleEditMovie = async (id) => {
+      try {
+        let response =  await fetch(`${import.meta.env.VITE_APP_API_URLBASE}/movies/${id}`)
+        let result = await response.json();
+
+        if(result.ok)
+        setMovie(result.data)
+      
+      } catch (error) {
+        console.log(error);       
+      }
+    };
+
+    const handleUpdateMovie = async (id, data) => {
+      try {
+        let response =  await fetch(`${import.meta.env.VITE_APP_API_URLBASE}/movies/${id}`, {
+          method : 'PUT',
+          body : JSON.stringify(data),
+          headers : {
+           'Content-Type' : 'application/json'
+          }
+        })
+
+        let result = await response.json();
+
+        if(result.ok){
+          Toast.fire({
+            icon: "success",
+            title: result.msg 
+          });    
+         }
+          
+
+      } catch (error) {
+        console.log(error);       
+      }
+    };
+  
+
   return (
     <>
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
@@ -36,7 +110,7 @@ export const MoviesListPage = () => {
       </div>
       <Row>
         <Col sm={12} md={4}>
-          <FormMovie />
+          <FormMovie handleAddMovie={handleAddMovie} handleUpdateMovie={handleUpdateMovie} setMovie={setMovie} movie={movie}/>
         </Col>
         <Col sm={12} md={8}>
           {loading ? (
@@ -62,14 +136,11 @@ export const MoviesListPage = () => {
                   </thead>
                   <tbody>
                     {movies.map(
-                      ({ title, length, genre, awards, rating }, index) => (
+                      (movie, index) => (
                         <TableItemMovies
-                          key={index + title}
-                          title={title}
-                          length={length}
-                          genre={genre}
-                          awards={awards}
-                          rating={rating}
+                          key={index + movie.title}
+                          movie={movie}
+                          handleEditMovie={handleEditMovie}
                         />
                       )
                     )}
