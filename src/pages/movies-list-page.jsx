@@ -93,7 +93,8 @@ export const MoviesListPage = () => {
           Toast.fire({
             icon: "success",
             title: result.msg 
-          });    
+          });   
+
          }
           
 
@@ -101,7 +102,29 @@ export const MoviesListPage = () => {
         console.log(error);       
       }
     };
+
+    const handleDeleteMovie = async (id) => {
+      try {
+        let response =  await fetch(`${import.meta.env.VITE_APP_API_URLBASE}/movies/${id}`, {
+          method : 'DELETE',
+        })
+
+        let result = await response.json();
+
+        if(result.ok){
+          Toast.fire({
+            icon: "success",
+            title: result.msg 
+          });    
+          setMovies(movies.filter(movie => movie.id !== id))
+         }  
+
+      } catch (error) {
+        console.log(error);       
+      }
+    };
   
+
 
   return (
     <>
@@ -141,6 +164,7 @@ export const MoviesListPage = () => {
                           key={index + movie.title}
                           movie={movie}
                           handleEditMovie={handleEditMovie}
+                          handleDeleteMovie={handleDeleteMovie}
                         />
                       )
                     )}
